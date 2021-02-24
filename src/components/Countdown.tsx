@@ -1,31 +1,42 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
+import { ChallengeContext } from '../contexts/ChallengesContext';
 import styles from '../styles/components/Countdown.module.css'
 
+let cdTimeout : NodeJS.Timeout;
+
 export default function Countdown() {
-    const [time, setTime] = useState(25*60)
-    const [cdState, setCdState] = useState(false)
+    const { startNewChallenge } = useContext(ChallengeContext)
+
+    const [time, setTime] = useState(0.05*60);
+    const [isCDActive, setIsCDActive] = useState(false);
+    const [hasFinished, setHasFinished] = useState(false);
 
     const minutes = Math.floor(time / 60);
     const seconds = time % 60;
-    const [displayMinuteLeft,displayMinuteRight] = String(minutes).padStart(2,'0').split('')
-    const [displaySecondsLeft,displaySecondsRight] = String(seconds).padStart(2,'0').split('')
+    const [displayMinuteLeft,displayMinuteRight] = String(minutes).padStart(2,'0').split('');
+    const [displaySecondsLeft,displaySecondsRight] = String(seconds).padStart(2,'0').split('');
 
     const startCountdown = () =>{
-        setCdState(!cdState)
-        console.log({cdState});
-        
+        setIsCDActive(true);
+    }
+
+    const resetCountdown = () => {
+        clearTimeout(cdTimeout);
+        setIsCDActive(false);
+        setTime(25 * 60);
     }
 
     useEffect(() => {
-        if(cdState && time > 0){
-        let cdTimer = setTimeout(() => {
-            setTime(time - 1)
+        if(isCDActive && time > 0){
+            cdTimeout = setTimeout(() => {
+            setTime(time - 1);
         }, 1000);
-        
-        if(!cdState || time <= 0)
-            clearTimeout(cdTimer);
+        } else if(isCDActive && time === 0){
+            setHasFinished(true);
+            setIsCDActive(false);
+            startNewChallenge();
         }
-    }, [cdState,time])
+    }, [isCDActive,time])
 
     return (
         <div>
@@ -40,9 +51,21 @@ export default function Countdown() {
                 <span>{displaySecondsRight}</span>
             </div>
         </div>
-        <button type="button" onClick={startCountdown} className={styles.startCountdownButton}>
+        {
+            hasFinished ? (
+            <button disabled className={styles.startCountdownButton}>
+                Ciclo encerrado
+            </button>)
+        : (<>{ isCDActive ?
+        (<button type="button" onClick={resetCountdown} className={`${styles.startCountdownButton} ${styles.stopCountdownButton}`}>
+            Abandonar ciclo
+        </button>)
+        :
+        (<button type="button" onClick={startCountdown} className={styles.startCountdownButton}>
             Iniciar um ciclo
-        </button>
+        </button>)
+        }</>)
+        }
         </div>
     )
 }
