@@ -1,10 +1,10 @@
 import { createContext, ReactNode, useEffect, useState } from 'react';
 import challenges from '../../challenges.json';
 
-interface Challenge{
-    type: 'body' | 'eye';
-    description: string;
-    amount: number
+interface Challenge {
+  type: 'body' | 'eye';
+  description: string;
+  amount: number;
 }
 
 interface ChallengesContextData {
@@ -31,15 +31,11 @@ export function ChallengesProvider({ children }: ChallengesProviderProps) {
   const [completedChallenges, setCompletedChallenges] = useState(0);
   const [activeChallenge, setActiveChallenge] = useState(null);
 
-    const xpToNextLevel = Math.pow((level + 1) * 4,2)
-    
-useEffect(() => {
-    if(currentExperience >= xpToNextLevel){
-        console.log({xpToNextLevel, currentExperience});
-        setCurrentExperience( currentExperience - xpToNextLevel)
-        levelup();
-    }
-}, [currentExperience])
+  const xpToNextLevel = Math.pow((level + 1) * 4, 2);
+
+  useEffect(() =>{
+    Notification.requestPermission();
+  },[] )
 
   function levelup() {
     setLevel(level + 1);
@@ -49,14 +45,32 @@ useEffect(() => {
     const randomIndex = Math.floor(Math.random() * challenges.length);
     const challenge = challenges[randomIndex];
     setActiveChallenge(challenge);
+
+
+      new Audio('/notification.mp3').play();
+
+    if(Notification.permission === 'granted'){
+      new Notification('Novo desafio!',{
+        body: `Valendo ${challenge.amount}xp!`
+      })
+    }
   }
 
-  function resetChallenge(){
-      setActiveChallenge(null);
+  function resetChallenge() {
+    setActiveChallenge(null);
   }
-  function completedChallenge(){
+  function completedChallenge() {
+    if (!activeChallenge) return;
+
+    let finalExp = currentExperience + activeChallenge.amount;
+    if (finalExp >= xpToNextLevel) {
+      finalExp = finalExp - xpToNextLevel;
+      levelup();
+    }
+
     setCompletedChallenges(completedChallenges + 1);
-      setCurrentExperience(currentExperience + activeChallenge.amount)
+    setCurrentExperience(finalExp);
+    setActiveChallenge(null);
   }
   return (
     <ChallengeContext.Provider
@@ -69,7 +83,7 @@ useEffect(() => {
         activeChallenge,
         resetChallenge,
         completedChallenge,
-        xpToNextLevel
+        xpToNextLevel,
       }}>
       {children}
     </ChallengeContext.Provider>
