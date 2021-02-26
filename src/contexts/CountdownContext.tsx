@@ -27,7 +27,7 @@ let cdTimeout: NodeJS.Timeout;
 export function CountdownProvider({ children }: CountdownProviderProps) {
   const { startNewChallenge } = useContext(ChallengeContext);
 
-  const [time, setTime] = useState(0.05 * 60);
+  const [time, setTime] = useState(25 * 60);
   const [isCDActive, setIsCDActive] = useState(false);
   const [hasFinished, setHasFinished] = useState(false);
 
@@ -41,7 +41,7 @@ export function CountdownProvider({ children }: CountdownProviderProps) {
   const resetCountdown = () => {
     clearTimeout(cdTimeout);
     setIsCDActive(false);
-    setHasFinished(false)
+    setHasFinished(false);
     setTime(25 * 60);
   };
 
